@@ -1,0 +1,38 @@
+# .github/workflows/01-hello.yml
+name: 01 — Hello workflow
+
+on:                            # When does this run?
+  push:                        #   - On every push to any branch
+    branches: ['**']
+  pull_request:                #   - On every PR open / sync / reopen
+  workflow_dispatch:           #   - When manually triggered from the Actions UI
+
+permissions:                   # What can the GITHUB_TOKEN do? Read-only.
+  contents: read
+
+jobs:
+  greet:
+    name: Greet and inspect context
+    runs-on: ubuntu-latest     # GitHub-hosted runner — free 2-core Ubuntu VM
+    steps:
+
+      - name: Show GitHub context
+        run: |
+          echo "Repo:         ${{ github.repository }}"
+          echo "Branch / ref: ${{ github.ref }}"
+          echo "Event:        ${{ github.event_name }}"
+          echo "Actor:        ${{ github.actor }}"
+          echo "Commit SHA:   ${{ github.sha }}"
+          echo "Run ID:       ${{ github.run_id }}"
+          echo "Run number:   ${{ github.run_number }}"
+
+      - name: Show runner info
+        run: |
+          echo "OS:           ${{ runner.os }}"
+          echo "Arch:         ${{ runner.arch }}"
+          uname -a
+          df -h /
+          free -h
+
+      - name: Hello world
+        run: echo "Hello from GitHub Actions"
