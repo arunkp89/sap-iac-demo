@@ -91,8 +91,7 @@ gh api -X PUT "repos/$GH_ORG/$GH_REPO/actions/permissions/workflow" `
   -F can_approve_pull_request_reviews=false
 
 # 3. Branch protection on main — require PR, status checks, signed commits, no force-push
-gh api -X PUT "repos/$GH_ORG/$GH_REPO/branches/main/protection" `
-  --input - <<'JSON'
+$branchProtection = @'
 {
   "required_status_checks": { "strict": true, "contexts": [] },
   "enforce_admins": true,
@@ -107,7 +106,8 @@ gh api -X PUT "repos/$GH_ORG/$GH_REPO/branches/main/protection" `
   "allow_deletions": false,
   "required_signatures": true
 }
-JSON
+'@
+$branchProtection | gh api -X PUT "repos/$GH_ORG/$GH_REPO/branches/main/protection" --input -
 
 # 4. Create one GitHub environment per Azure identity
 foreach ($env in @("dev","staging","prod")) {
@@ -117,8 +117,7 @@ foreach ($env in @("dev","staging","prod")) {
 # 5. Add per-env reviewer rules on prod (require approval before apply runs)
 #    Replace 12345 with your GitHub user ID (gh api user --jq .id)
 $MY_USER_ID = (gh api user --jq .id)
-gh api -X PUT "repos/$GH_ORG/$GH_REPO/environments/prod" `
-  --input - <<JSON
+$prodEnv = @"
 {
   "wait_timer": 0,
   "reviewers": [ { "type": "User", "id": $MY_USER_ID } ],
@@ -127,7 +126,8 @@ gh api -X PUT "repos/$GH_ORG/$GH_REPO/environments/prod" `
     "custom_branch_policies": false
   }
 }
-JSON
+"@
+$prodEnv | gh api -X PUT "repos/$GH_ORG/$GH_REPO/environments/prod" --input -
 
 # 6. Per-environment variables (non-secret — client IDs of the MIs are not sensitive)
 foreach ($env in @("dev","staging","prod")) {
@@ -145,6 +145,14 @@ stacks/prod/               @$GH_ORG
 modules/                   @$GH_ORG
 "@ | Out-File -Encoding utf8 .github\CODEOWNERS
 
+git checkout -b chore/codeowners
 git add .github\CODEOWNERS
 git commit -S -m "chore: add CODEOWNERS"
-git push
+git push -u origin chore/codeowners
+
+gh pr create --base main --head chore/codeowners `
+  --title "chore: add CODEOWNERS" `
+  --body  "Adds CODEOWNERS so the require-code-owner-reviews rule has owners to call." `
+  --fill-first
+# After approvals + checks:
+gh pr merge --squash --delete-branch
