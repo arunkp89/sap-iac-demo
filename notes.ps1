@@ -154,5 +154,9 @@ gh pr create --base main --head chore/codeowners `
   --title "chore: add CODEOWNERS" `
   --body  "Adds CODEOWNERS so the require-code-owner-reviews rule has owners to call." `
   --fill-first
+<<<<<<< HEAD
+# After approvals + checks: Just a test change.
+=======
 # After approvals + checks:
+>>>>>>> 1d1ac6c6e7038f116b6c843b4dbf6984be431506
 gh pr merge --squash --delete-branch

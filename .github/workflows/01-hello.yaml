@@ -36,6 +36,3 @@ jobs:
 
       - name: Hello world
         run: echo "Hello from GitHub Actions"
-
-      - name: This step will fail deliberately
-        run: exit 1
